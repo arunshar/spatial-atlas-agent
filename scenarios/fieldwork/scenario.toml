@@ -1,0 +1,19 @@
+# This file requires the AgentBeats harness and gated FieldWorkArena data, neither of which
+# this repository provides.
+[scenario]
+name = "FieldWorkArena"
+description = "Multimodal spatial QA for factory, warehouse, and retail environments"
+
+[green_agent]
+image = "ghcr.io/fujitsu-agentbeats/fieldworkarena-green-agent:latest"
+port = 9010
+
+[purple_agent]
+# Build this image yourself with the Dockerfile in this repository and push it to your
+# own registry. This repository publishes no image.
+image = "<your-registry>/spatial-atlas-agent:latest"
+port = 9019
+
+[config]
+# FieldWorkArena uses the Fujitsu HuggingFace dataset
+hf_dataset = "Fujitsu/FieldWorkArena_Dataset"

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: false
+      - name: Install (locked) + test deps
+        run: uv sync --frozen --extra test
+      - name: Audit locked Python dependencies
+        # The advisory feed changes independently of this repository, so a new advisory can
+        # appear without any code change. This step reports findings but does not fail the job.
+        continue-on-error: true
+        run: |
+          uv export --frozen --no-hashes --format requirements-txt -o /tmp/requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit \
+            --no-deps --disable-pip -r /tmp/requirements.txt
+      - name: Lint application and tests
+        run: uv run --with ruff==0.16.2 ruff check src tests
+      - name: Scan application security patterns
+        run: uvx --from bandit==1.9.4 bandit -q -r src
+      - name: Unit + integration + smoke (no GPU/dataset)
+        run: |
+          uv run pytest -m "not e2e and not gpu" \
+            --cov=fieldwork.perception --cov-report=term-missing \
+            --cov-fail-under=90

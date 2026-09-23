@@ -1,0 +1,100 @@
+NOTICE
+
+Spatial Atlas
+Copyright (c) 2026 Arun Sharma
+
+The Spatial Atlas code in this repository is licensed under the MIT License. The full license text is in the LICENSE file at the root of this repository.
+
+The MIT License covers the code, tests, and configuration files, except for the third-party portions named below. The manuscript in paper/, the poster in poster/, and the figures in assets/diagrams/ are copyright 2026 Arun Sharma, and all rights are reserved. The earlier version of the manuscript on arXiv (arXiv:2604.12102) carries a CC BY 4.0 license, and that license still applies to that version. The test fixture tests/fixtures/kerned_subset_font.pdf is one page of an earlier draft of the same manuscript, and it carries the same reserved rights.
+
+The LICENSES/ folder holds the full texts of the NVIDIA Source Code License-NC, the Apache-2.0 license, and the Comic Shanns MIT License. Later sections name the files that each license covers.
+
+
+NVIDIA SpatialClaw (licensed separately)
+
+The metric perception primitives in src/fieldwork/perception.py call NVIDIA's SpatialClaw at runtime. SpatialClaw is published at https://github.com/NVlabs/SpatialClaw and is copyright NVIDIA Corporation and its affiliates.
+
+NVIDIA licenses SpatialClaw separately under the NVIDIA Source Code License-NC. That license restricts SpatialClaw and its derivative works to non-commercial use, which it defines as non-commercial scientific research.
+
+This repository does not include SpatialClaw source files, except the ten-line function in eval_bench.py that a later paragraph names. It does not include the SpatialClaw GPU tool server or any SAM3 or Depth-Anything-3 model weights. Users who want the metric path must obtain SpatialClaw from NVIDIA and use it under NVIDIA's terms. The MIT License in this repository does not cover SpatialClaw and grants no rights to it.
+
+The metric bridge calls SpatialClaw only through its public classes at runtime.
+
+The perception module imports the SpatialClaw package, spatial_agent, only when a metric run starts. The benchmark driver eval_bench.py loads SpatialClaw's benchmark factory and scoring modules from a separate SpatialClaw checkout that the user supplies. The strict QSpatial run modes also need a benchmark loader that is not part of NVIDIA's public SpatialClaw release. The rest of the agent imports and runs without SpatialClaw installed.
+
+The function _benchmark_instruction in eval_bench.py is about ten lines long. It is derived from the question-and-choice text format in spatial_agent/entrypoints/run.py of NVIDIA SpatialClaw, so that prompts match across runs. A comment above the function keeps NVIDIA's copyright notice. The MIT License here does not cover that function. It remains under the NVIDIA Source Code License-NC, and the full text of that license is in LICENSES/NVIDIA-Source-Code-License-NC.txt.
+
+SpatialClaw's mechanisms and reported results belong to its NVIDIA authors. They are not Spatial Atlas results.
+
+NVIDIA and SpatialClaw are names that belong to their owners. This repository uses them only to identify the upstream project, and it does not claim any endorsement by NVIDIA.
+
+
+Perception models (licensed separately and not included here)
+
+The SpatialClaw GPU service runs two perception models. Meta publishes SAM3, and ByteDance publishes Depth-Anything-3. Each model and its weights carry their own license, and users must accept those terms separately. The MIT License here does not cover them. SpatialClaw's reconstruction tool can also run Pi3 or MapAnything, depending on its server configuration, and each of those models carries its own license.
+
+The optional detector in src/fieldwork/detector.py downloads Microsoft's Florence-2-base model and its remote code from Hugging Face at a pinned revision when torch and transformers are installed. The Florence-2-base model card lists the MIT License, and the model card holds the authoritative terms. This repository does not include the model, torch, or transformers.
+
+
+Benchmark text
+
+The files src/fieldwork/perception.py and tests/test_perception.py copy a small amount of question text from Q-Spatial Bench (QSpatial++). The copied text lets the strict QSpatial question grammar and its tests match those rows exactly. Q-Spatial Bench comes from Yuan-Hong Liao, Rafid Mahmood, Sanja Fidler, and David Acuna, and its dataset card on Hugging Face lists the Apache-2.0 license. The copied text stays under Apache-2.0, and the MIT License here does not cover it. The full Apache-2.0 license text is in LICENSES/Apache-2.0.txt, and the dataset card holds the authoritative terms.
+
+
+AgentBeats agent template
+
+Four parts of this repository started from the AgentBeats agent template that the RDI Foundation publishes at https://github.com/RDI-Foundation/agent-template. They are src/executor.py, the argument parsing and A2A server setup in src/server.py, the Agent class entry point in src/agent.py, and the Dockerfile layout.
+
+That repository publishes no license file. GitHub marks it as a template repository, and its README invites users to create their own repositories from it. Those starting portions remain the template authors' work, and the MIT License here covers only my changes to them.
+
+
+Third-party runtime dependencies
+
+Spatial Atlas installs the packages below as runtime dependencies. Each package keeps its own license. Each license name below comes from the published package metadata for the version pinned in uv.lock. The package itself holds the authoritative terms.
+
+A2A Python SDK (a2a-sdk): Apache-2.0
+
+LiteLLM (litellm): MIT
+
+httpx: BSD-3-Clause
+
+Pydantic (pydantic): MIT
+
+pydantic-settings: MIT
+
+python-dotenv: BSD-3-Clause
+
+Uvicorn (uvicorn): BSD-3-Clause
+
+Starlette (starlette, installed through a2a-sdk): BSD-3-Clause
+
+pypdf: BSD-3-Clause
+
+NumPy (numpy): BSD-3-Clause. The package also bundles some components under 0BSD, MIT, Zlib, and CC0-1.0.
+
+SciPy (scipy): BSD-3-Clause
+
+Pillow: MIT-CMU
+
+OpenCV (opencv-python-headless): Apache-2.0 for OpenCV itself. The wheel bundles other libraries, so see the package for their terms.
+
+pandas: BSD-3-Clause
+
+scikit-learn: BSD-3-Clause
+
+XGBoost (xgboost): Apache-2.0
+
+LightGBM (lightgbm): MIT
+
+The metric path also imports pycocotools when it decodes run-length encoded masks. It is not a declared dependency, so see the package for its license.
+
+
+Fonts
+
+The poster PDF embeds subsets of EB Garamond and Fira Mono, which use the SIL Open Font License 1.1. It also embeds the Computer Modern and AMS math fonts from the TeX distribution, which use the SIL Open Font License.
+
+The paper PDF and one test fixture, tests/fixtures/kerned_subset_font.pdf, embed URW Nimbus fonts from the TeX distribution. Their license is the GNU General Public License with a special exception that permits embedding them in a PDF document. These files also embed Computer Modern and AMS math fonts.
+
+The SVG diagrams embed subsets of Excalifont and Lilita One, which use the SIL Open Font License 1.1. The file component-map.svg also embeds Comic Shanns, which uses the MIT License. Comic Shanns is copyright 2018 Shannon Miwa, 2023 Jesus Gonzalez, 2023 Rodrigo Batista de Moraes, 2024 Fini Jastrow, and 2024 Kyle Beechly. Its MIT License text, copied from the name table of the embedded font, is in LICENSES/Comic-Shanns-MIT.txt. Each font keeps its own license, and the MIT License for this repository's code does not cover any embedded font.
+
+The poster files contain no university or company logos.

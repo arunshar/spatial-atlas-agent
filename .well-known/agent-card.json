@@ -1,0 +1,48 @@
+{
+  "capabilities": {
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text"
+  ],
+  "defaultOutputModes": [
+    "text"
+  ],
+  "description": "Spatial-aware research agent built on compute-grounded reasoning (CGR). Code computes selected facts over explicit spatial representations for field work analysis. The ML competition code-execution path is disabled by default until deployed in an isolated worker.",
+  "name": "Spatial Atlas",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "skills": [
+    {
+      "description": "Analyzes factory, warehouse, and retail environments from images, videos, PDFs, and documents. Spatial reasoning with structured scene graphs, safety inspection, and formatted reporting.",
+      "examples": [
+        "Analyze warehouse layout for safety violations"
+      ],
+      "id": "fieldwork-research",
+      "name": "Multimodal Field Research",
+      "tags": [
+        "spatial",
+        "multimodal",
+        "vision",
+        "fieldwork",
+        "research"
+      ]
+    },
+    {
+      "description": "Generates a Kaggle-style ML pipeline and a submission file. Generated-code execution is disabled by default and needs an isolated worker.",
+      "examples": [
+        "Train a model for the spaceship-titanic competition"
+      ],
+      "id": "ml-engineering",
+      "name": "ML Engineering",
+      "tags": [
+        "ml",
+        "kaggle",
+        "data-science",
+        "code-generation"
+      ]
+    }
+  ],
+  "url": "http://127.0.0.1:9019/",
+  "version": "1.0.0"
+}

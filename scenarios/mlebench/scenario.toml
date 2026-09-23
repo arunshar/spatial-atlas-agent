@@ -1,0 +1,19 @@
+# This file requires the AgentBeats harness and MLE-Bench competition data, neither of which
+# this repository provides.
+[scenario]
+name = "MLE-Bench"
+description = "75 Kaggle-style ML competitions evaluated end-to-end"
+
+[green_agent]
+image = "ghcr.io/YOUR_ORG/mle-bench-green:latest"
+port = 9010
+
+[purple_agent]
+# Build this image yourself with the Dockerfile in this repository and push it to your
+# own registry. This repository publishes no image.
+image = "<your-registry>/spatial-atlas-agent:latest"
+port = 9019
+
+[config]
+# Example competition (change for different evaluations)
+competition_id = "spaceship-titanic"

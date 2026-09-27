@@ -1,0 +1,87 @@
+\begin{figure}[t]
+\centering
+\definecolor{saInk}{HTML}{1F2A37}
+\definecolor{saMain}{HTML}{2F5D8A}
+\definecolor{saMainWash}{HTML}{EAF0F7}
+\definecolor{saGray}{HTML}{6B7280}
+\definecolor{saGrayWash}{HTML}{F3F4F6}
+\definecolor{saOpt}{HTML}{9A6212}
+\definecolor{saOptWash}{HTML}{FBF3E4}
+\definecolor{saStop}{HTML}{A33A2B}
+\definecolor{saStopWash}{HTML}{F9E9E6}
+\begin{tikzpicture}[
+    font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\relax},
+    >={Stealth[length=1.7mm,width=1.3mm]},
+    every node/.style={text=saInk},
+    gstep/.style={rectangle, rounded corners=2pt, line width=0.6pt, align=center, inner sep=2.5pt,
+      draw=saOpt, fill=saOptWash, text width=2.3cm, minimum height=1.8cm},
+    check/.style={gstep, line width=1.0pt},
+    flow/.style={->, line width=0.6pt, draw=saInk},
+    exit/.style={->, line width=0.6pt, draw=saStop},
+    pairexit/.style={->, line width=0.6pt, draw=saStop, dashed},
+    rail/.style={line width=0.6pt, draw=saStop},
+    lab/.style={font=\scriptsize, inner sep=1pt},
+    exitlab/.style={font=\scriptsize, inner sep=1pt, text=saStop},
+  ]
+
+  \node[check] (in) at (1.24,0)
+    {\textbf{Inputs}\\[1pt]{\scriptsize SAM~3 gives masks, and Depth Anything~3 gives a point map.}};
+  \node[check] (erode) at (3.97,0)
+    {\textbf{Erosion}\\[1pt]{\scriptsize Each mask is resized and then eroded once with a disk of radius $r_e$.}};
+  \node[check] (overlap) at (6.70,0)
+    {\textbf{Overlap check}\\[1pt]{\scriptsize A pair with $\rho \ge 0.05$ fails. Otherwise the shared pixels are removed.}};
+  \node[gstep] (conf) at (9.43,0)
+    {\textbf{Confidence}\\[1pt]{\scriptsize Finite points with confidence above 0.3 stay.}};
+  \node[gstep] (voxel) at (12.16,0)
+    {\textbf{5 mm voxels}\\[1pt]{\scriptsize Each $(x, z)$ voxel keeps its top-confidence point.}};
+
+  \node[check] (count) at (1.24,-2.8)
+    {\textbf{Voxel count}\\[1pt]{\scriptsize Each object needs at least 32 voxels.}};
+  \node[gstep] (nn) at (3.97,-2.8)
+    {\textbf{Directed $\operatorname{pct}_5$}\\[1pt]{\scriptsize Nearest-neighbor distances run $A \to B$ and $B \to A$.}};
+  \node[gstep] (gap) at (6.70,-2.8)
+    {\textbf{Gap}\\[1pt]{\scriptsize $g$ is the smaller directed value.}};
+  \node[check] (valid) at (9.43,-2.8)
+    {\textbf{Validity}\\[1pt]{\scriptsize $g$ must be finite, with $0 < g \le 20$ m.}};
+  \node[gstep] (select) at (12.16,-2.8)
+    {\textbf{Pair selection}\\[1pt]{\scriptsize The smallest valid $g$ wins, and ties go to the lowest mask indices.}};
+
+  \draw[flow] (in) -- (erode);
+  \draw[flow] (erode) -- (overlap);
+  \draw[flow] (overlap) -- (conf);
+  \draw[flow] (conf) -- (voxel);
+  \draw[flow] (voxel.south) -- (12.16,-1.4) -- (1.24,-1.4) -- (count.north);
+  \draw[flow] (count) -- (nn);
+  \draw[flow] (nn) -- (gap);
+  \draw[flow] (gap) -- (valid);
+  \draw[flow] (valid) -- (select);
+
+  \node[rectangle, rounded corners=2pt, line width=1.0pt, draw=saStop, fill=saStopWash, align=center,
+        inner sep=3pt, text width=3.4cm] (unavail) at (2.0,-5.8)
+    {\textbf{Fail closed}\\[1pt]\texttt{QSPATIAL\_UNAVAILABLE}\\{\scriptsize The answer is the literal \mbox{``measurement unavailable''}.}};
+  \node[rectangle, rounded corners=2pt, line width=1.0pt, draw=saMain, fill=saMainWash, align=center,
+        inner sep=3pt, text width=2.6cm] (answer) at (12.16,-5.8)
+    {\textbf{Gap fact}\\[1pt]{\scriptsize $g$ enters the fact sheet to six decimals. The Strong tier writes the answer.}};
+  \draw[flow] (select) -- (answer);
+  \node[lab, align=center, text width=5.6cm] at (7.0,-5.85)
+    {Dashed exits drop only the current pair. The bridge fails closed when no pair stays valid.};
+
+  \draw[rail] (in.north) -- (1.24,1.5) -- (-0.3,1.5) -- (-0.3,-5.8);
+  \draw[exit] (-0.3,-5.8) -- (unavail.west);
+  \node[exitlab, anchor=west] at ([xshift=1pt,yshift=3.6mm]in.north) {too few masks};
+  \draw[exit] ([xshift=-7.6mm]select.south) |- (2.0,-4.5) -- (unavail.north);
+  \node[exitlab, anchor=south] at (5.3,-4.5) {no valid pair};
+
+  \foreach \n/\lbl in {erode/empty after erosion, overlap/{$\rho \ge 0.05$}} {
+    \draw[pairexit] (\n.north) -- ++(0,0.5);
+    \node[exitlab, anchor=west] at ([xshift=1pt,yshift=2.8mm]\n.north) {\lbl};
+  }
+  \draw[pairexit] (count.south) -- ++(0,-0.5);
+  \node[exitlab, anchor=west] at ([xshift=1pt,yshift=-2.8mm]count.south) {fewer than 32 voxels};
+  \draw[pairexit] (valid.south) -- ++(0,-0.5);
+  \node[exitlab, anchor=east] at ([xshift=-1pt,yshift=-2.8mm]valid.south) {non-finite, or outside $(0, 20]$ m};
+\end{tikzpicture}
+\caption{The strict metric bridge computes a horizontal gap from object masks and a point map. Each candidate pair of object masks passes through the steps from left to right, first along the top row and then along the bottom row. Here $\operatorname{pct}_5$ is the fifth percentile with linear interpolation, as in \cref{eq:gapfull}. The erosion radius $r_e$ is the ceiling of the larger resolution ratio between a mask and the point map. Each mask is first resized to the point-map grid by nearest-neighbor sampling. The overlap coefficient is $\rho = \lvert E_a \cap E_b \rvert / \min(\lvert E_a \rvert, \lvert E_b \rvert)$ for the eroded masks $E_a$ and $E_b$. The bridge returns \texttt{QSPATIAL\_UNAVAILABLE} at once when the parser marks the question unsupported or when segmentation returns too few masks. A parse or manifest failure raises an error before the steps in this figure begin. Every dashed exit drops only the current pair, and the bridge returns \texttt{QSPATIAL\_UNAVAILABLE} when no pair stays valid. The confidence filter has no exit of its own, because a mask that loses its points fails the voxel count. A segmentation or reconstruction service failure raises an error, and the bridge never falls back to the scene graph. A valid gap enters the fact sheet, and the Strong tier writes the final answer from it.}
+\label{fig:bridge}
+\end{figure}

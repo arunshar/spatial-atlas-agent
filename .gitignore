@@ -21,6 +21,10 @@ junit.xml
 paper/*.aux
 paper/*.log
 paper/*.out
+paper/source/*.aux
+paper/source/*.log
+paper/source/*.out
+paper/source/main.pdf
 
 # Local-only session notes (never publish)
 sessions/

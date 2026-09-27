@@ -6,11 +6,9 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC_DOCS = (
-    "README.md",
-    "paper/spatial_atlas.md",
-    "paper/spatial_atlas.tex",
-)
+PUBLIC_DOCS = ("README.md",)
+# The revised manuscript's LaTeX source, the arXiv v3 package unpacked as shipped.
+PAPER_SOURCE = "paper/source/main.tex"
 
 # Retired result titles are assembled at run time, so a plain grep of the repository for the
 # retired wording finds no match inside this guard file.
@@ -102,7 +100,7 @@ def test_generated_junit_report_is_ignored():
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("paper_path", ["paper/spatial_atlas.md", "paper/spatial_atlas.tex"])
+@pytest.mark.parametrize("paper_path", [PAPER_SOURCE])
 def test_paper_marks_fieldworkarena_as_unevaluated(paper_path):
     paper = (ROOT / paper_path).read_text()
 
@@ -168,7 +166,7 @@ def test_public_docs_match_fail_closed_mle_runtime(doc_path):
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "source_path",
-    ["paper/spatial_atlas.md", "paper/spatial_atlas.tex", "poster/spatial_atlas_poster.tex"],
+    [PAPER_SOURCE, "poster/spatial_atlas_poster.tex"],
 )
 def test_retired_result_titles_stay_out_of_public_sources(source_path):
     text = (ROOT / source_path).read_text()
@@ -239,6 +237,9 @@ def test_shipped_text_has_no_phone_number_or_tel_link():
         visible = _visible_text(relative, text)
         if _TEL_SCHEME in visible:
             offenders.append(f"{relative}: {_TEL_SCHEME} link")
+        # Bibliography DOIs in the paper source contain digit runs that look like phone numbers.
+        if relative.parts[:2] == ("paper", "source"):
+            continue
         if _PHONE_PATTERN.search(visible):
             offenders.append(f"{relative}: phone-number pattern")
 

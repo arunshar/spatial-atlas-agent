@@ -1,0 +1,81 @@
+\begin{figure}[t]
+\centering
+\definecolor{saInk}{HTML}{1F2A37}
+\definecolor{saMain}{HTML}{2F5D8A}
+\definecolor{saMainWash}{HTML}{EAF0F7}
+\definecolor{saGray}{HTML}{6B7280}
+\definecolor{saGrayWash}{HTML}{F3F4F6}
+\definecolor{saOpt}{HTML}{9A6212}
+\definecolor{saOptWash}{HTML}{FBF3E4}
+\definecolor{saStop}{HTML}{A33A2B}
+\definecolor{saStopWash}{HTML}{F9E9E6}
+\begin{tikzpicture}[
+    font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\relax},
+    >={Stealth[length=1.7mm,width=1.3mm]},
+    every node/.style={text=saInk},
+    base/.style={rectangle, rounded corners=2pt, line width=0.6pt, align=center, inner sep=2.5pt},
+    main/.style={base, draw=saMain, fill=saMainWash},
+    opt/.style={base, draw=saOpt, fill=saOptWash},
+    stop/.style={base, draw=saStop, fill=saStopWash},
+    neutral/.style={base, draw=saGray, fill=saGrayWash},
+    arm/.style={text width=2.27cm, minimum height=1.6cm, anchor=north},
+    flow/.style={->, line width=0.6pt, draw=saInk},
+    lab/.style={font=\scriptsize, inner sep=1pt},
+  ]
+
+  \node[main, arm] (a1) at (1.225,0)
+    {\textbf{Scene-graph\\path}\\[1pt]{\scriptsize engine: scene graph\\image: correct}};
+  \node[main, arm] (a2) at (3.925,0)
+    {\textbf{Question-only\\baseline}\\[1pt]{\scriptsize engine: scene graph\\image: none}};
+  \node[opt, arm] (a3) at (6.625,0)
+    {\textbf{Correct-image\\metric path}\\[1pt]{\scriptsize engine: strict metric\\image: correct}};
+  \node[opt, arm] (a4) at (9.325,0)
+    {\textbf{Shuffled-image\\metric control}\\[1pt]{\scriptsize engine: strict metric\\image: control $\phi(s)$}};
+
+  \foreach \x/\col/\wash in {1.225/saMain/saMainWash, 3.925/saMain/saMainWash, 6.625/saOpt/saOptWash, 9.325/saOpt/saOptWash} {
+    \foreach \k in {0,...,7} {
+      \draw[draw=\col, fill=\wash, line width=0.5pt] ({\x-1.055+\k*0.27},-2.05) rectangle ++(0.22,-0.34);
+    }
+    \draw[flow] (\x,-1.6) -- (\x,-2.0);
+    \node[lab] at (\x,-2.63) {8 label-free rows};
+    \draw[flow] (\x,-2.78) -- (\x,-3.18);
+  }
+
+  \node[neutral, minimum width=13.75cm, minimum height=0.6cm] (journal) at (6.875,-3.48)
+    {\textbf{Label-free prescore journals}: {\scriptsize 32 label-free prescore prediction rows, with zero retries}};
+  \node[neutral, text width=3.9cm, minimum height=1.45cm, anchor=north west] (final) at (0,-4.2)
+    {\textbf{Terminal finalizer}\\[1pt]{\scriptsize It was invoked once and wrote the smoke seal and the terminal result.}};
+  \node[neutral, text width=2.5cm, minimum height=1.45cm, anchor=north west] (seal) at (4.48,-4.2)
+    {\textbf{Seal and result}\\[1pt]{\scriptsize They form the closed final record of the run.}};
+  \draw[flow] (journal.south -| final.north) -- (final.north);
+  \draw[flow] (final) -- (seal);
+
+  \node[stop, text width=2.7cm, minimum height=1.45cm, anchor=north west] (labels) at (7.71,-4.2)
+    {\textbf{Labels sealed}\\[1pt]{\scriptsize Protected labels and ground truth remained sealed.}};
+  \node[neutral, dashed, text width=2.5cm, minimum height=1.45cm, anchor=north east] (score) at (13.77,-4.2)
+    {\textbf{No scoring}\\[1pt]{\scriptsize No score or paired comparison was computed.}};
+  \draw[line width=0.6pt, draw=saGray, dashed] (labels) -- (score)
+    node[midway, fill=white, inner sep=0.5pt, text=saStop, font=\footnotesize\bfseries] {$\times$};
+
+  \draw[saGray, line width=0.6pt, rounded corners=3pt] (10.85,0) rectangle (13.77,-2.97);
+  \node[anchor=north, align=center, inner sep=2pt] at (12.31,-0.05) {\textbf{Public driver}\\\textbf{contract $\phi$}};
+  \foreach \i in {0,...,5} {
+    \coordinate (m\i) at ({12.31+0.36*cos(90-60*\i)},{-1.24+0.36*sin(90-60*\i)});
+  }
+  \foreach \i/\j in {0/1,1/2,2/3,3/4,4/5} {
+    \draw[-{Stealth[length=1.1mm,width=1.0mm]}, line width=0.5pt, draw=saOpt, shorten <=1.0mm, shorten >=1.0mm] (m\i) to[bend left=25] (m\j);
+  }
+  \draw[-{Stealth[length=1.1mm,width=1.0mm]}, line width=0.5pt, draw=saOpt, dotted, shorten <=1.0mm, shorten >=1.0mm] (m5) to[bend left=25] (m0);
+  \foreach \i in {0,...,5} {
+    \fill[saInk] (m\i) circle (0.045);
+  }
+  \node[lab, anchor=south west] at ([xshift=1pt,yshift=0.5pt]m1) {$s$};
+  \node[lab, anchor=north west] at ([xshift=1pt,yshift=-0.5pt]m2) {$\phi(s)$};
+  \node[lab, align=center, text width=2.75cm, anchor=north] at (12.31,-1.72)
+    {The public code requires 84 pairs, a bijection, no fixed point, and checked image digests.};
+  \draw[flow] (10.85,-0.8) -- (a4.east |- 0,-0.8);
+\end{tikzpicture}
+\caption{Four operational paths ran together in the V37 run. The paths were the scene-graph path, question-only baseline, correct-image metric path, and schema-matched shuffled-image metric control. Each path produced eight label-free prescore prediction rows, so the run wrote 32 rows with zero retries. The execution, warning-scan, restoration, cleanup, and terminal-seal gates passed. In the public driver, the shuffled-image mode swaps each attached image through a control mapping $\phi$. That mapping must hold 84 pairs, be a bijection, and have no fixed point, and the loader checks the digest of every source and control image. The terminal finalizer ran once and wrote the smoke seal and the terminal result. Protected labels and ground truth remained sealed, and no score or paired comparison was computed, so the run establishes operational integrity only. The run is private, and the public repository cannot reproduce it.}
+\label{fig:arms}
+\end{figure}

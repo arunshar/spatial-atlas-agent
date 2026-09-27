@@ -1,0 +1,94 @@
+\begin{figure}[t]
+\centering
+\definecolor{saInk}{HTML}{1F2A37}
+\definecolor{saMain}{HTML}{2F5D8A}
+\definecolor{saMainWash}{HTML}{EAF0F7}
+\definecolor{saGray}{HTML}{6B7280}
+\definecolor{saGrayWash}{HTML}{F3F4F6}
+\definecolor{saOpt}{HTML}{9A6212}
+\definecolor{saOptWash}{HTML}{FBF3E4}
+\definecolor{saStop}{HTML}{A33A2B}
+\definecolor{saStopWash}{HTML}{F9E9E6}
+\begin{tikzpicture}[
+    font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\relax},
+    >={Stealth[length=1.7mm,width=1.3mm]},
+    every node/.style={text=saInk},
+    base/.style={rectangle, rounded corners=2pt, line width=0.6pt, align=center, inner sep=2.5pt},
+    main/.style={base, draw=saMain, fill=saMainWash},
+    opt/.style={base, draw=saOpt, fill=saOptWash},
+    stop/.style={base, draw=saStop, fill=saStopWash},
+    neutral/.style={base, draw=saGray, fill=saGrayWash},
+    colA/.style={main, text width=4.3cm},
+    colB/.style={text width=3.85cm},
+    flow/.style={->, line width=0.6pt, draw=saInk},
+    optflow/.style={->, line width=0.6pt, draw=saOpt, dashed},
+    stopflow/.style={->, line width=0.6pt, draw=saStop},
+    shareflow/.style={->, line width=0.6pt, draw=saGray, dashed},
+    lab/.style={font=\scriptsize, inner sep=1pt},
+  ]
+
+  \node[neutral, minimum width=13.7cm, minimum height=0.55cm] (a2a) at (6.85,0)
+    {\textbf{A2A server} built on the official \texttt{a2a-sdk}, with \textbf{rule-based dispatch}: four fixed rules and no model call};
+
+  \node[colA, anchor=north] (parse) at (2.4,-1.75)
+    {\textbf{File parsing into evidence}\\[1pt]{\scriptsize The Vision tier describes images and video frames, and pypdf reads PDF text.}};
+  \node[colA, below=0.45cm of parse] (scene)
+    {\textbf{Scene extraction (Strong tier)}\\[1pt]{\scriptsize Positions are Strong-tier estimates from text. Model-supplied distances are kept.}};
+  \node[colA, below=0.45cm of scene] (facts)
+    {\textbf{Computed facts (code)}\\[1pt]{\scriptsize Code fills only the missing distances and checks the extracted safety rules.}};
+  \node[colA, below=0.45cm of facts] (answer)
+    {\textbf{Answer (Strong tier)}\\[1pt]{\scriptsize It reads the question, the file descriptions, and the fact sheet.}};
+  \node[colA, below=0.5cm of answer] (grade)
+    {\textbf{Self-grade (Fast tier)}\\[1pt]{\scriptsize It returns $\sigma$, or 0.5 when the reply cannot be parsed.}};
+  \node[colA, below=0.45cm of grade] (fmt)
+    {\textbf{Output formatter}};
+
+  \draw[flow] (a2a.south -| parse.north) -- (parse.north);
+  \node[lab, anchor=west] at (2.5,-0.6) {question format, or default};
+  \draw[flow] (parse) -- (scene) node[lab, midway, right, xshift=1.5pt] {file descriptions};
+  \draw[flow] (scene) -- (facts) node[lab, midway, right, xshift=1.5pt] {typed scene graph};
+  \draw[flow] (facts) -- (answer) node[lab, midway, right, xshift=1.5pt] {fact sheet};
+  \draw[flow] (answer) -- (grade);
+  \draw[flow] (grade) -- (fmt) node[lab, midway, right, xshift=1.5pt] {$\sigma \ge 0.6$};
+
+  \path (fmt.south) ++(0,-0.15) coordinate (fwbot);
+  \draw[saMain, line width=0.6pt, rounded corners=3pt] (0,-0.92) rectangle (fwbot -| 9.6,0);
+  \node[anchor=north east, font=\footnotesize\bfseries, text=saMain] at (9.5,-0.94) {Spatial handler};
+
+  \node[neutral, dashed, colB, anchor=north] (tools) at (7.3,-2.85)
+    {\textbf{SpatialClaw tools}\\[1pt]{\scriptsize These external tools supply SAM~3 masks and a Depth Anything~3 point map.}};
+  \node[opt, colB, below=0.3cm of tools] (gap)
+    {\textbf{Horizontal surface gap}\\[1pt]{\scriptsize The checks of \Cref*{fig:bridge} fail closed. A valid gap enters the fact sheet in place of the scene graph.}};
+  \node[stop, colB, below=0.3cm of gap] (exits)
+    {{\scriptsize A failed evidence check returns \texttt{measurement unavailable} and skips the reasoner.\\[1pt] A parse, manifest, or service failure raises an error.}};
+  \path (exits.south) ++(0,-0.15) coordinate (brbot);
+  \draw[saOpt, line width=0.6pt, dashed, rounded corners=3pt] (5.15,-1.7) rectangle (brbot -| 9.45,0);
+  \node[anchor=north west, align=left, inner sep=2pt] at (5.2,-1.72)
+    {\textbf{\color{saOpt}Strict metric bridge}\\[-1pt]{\scriptsize benchmark driver only,}\\[-1pt]{\scriptsize never reached through A2A}};
+  \draw[optflow] (2.4,-1.42) -- (8.95,-1.42) -- (8.95,-1.7);
+  \node[lab, anchor=south west, text=saOpt] at (2.5,-1.4) {driver only: image and raw question};
+  \draw[flow] (tools) -- (gap);
+  \draw[stopflow] (gap) -- (exits);
+  \draw[flow] (gap.west) -| (4.9,0 |- answer.east) -- (answer.east);
+
+  \node[main, text width=3.3cm] (refine) at (grade -| 7.55,0)
+    {\textbf{One refinement (Strong tier)}\\[1pt]{\scriptsize It runs at most once per task.}};
+  \draw[flow] (grade) -- (refine) node[lab, midway, above] {$\sigma < 0.6$};
+  \draw[flow] (refine.south) |- (fmt.east);
+
+  \node[neutral, text width=3.7cm, anchor=north] (mle) at (11.8,-0.92)
+    {\textbf{ML-engineering handler}\\[2pt]
+     {\scriptsize The Standard tier analyzes the competition and names a strategy template.\\[2pt]
+      The Strong tier writes the pipeline script, repairs it after errors, and refines it.\\[2pt]
+      Generated-code execution is off by default. It needs an opt-in flag, an operator flag that attests an isolated and trusted worker, and authenticated startup.}};
+  \draw[flow] (a2a.south -| mle.north) -- (mle.north) node[lab, midway, right, xshift=2pt, align=left] {archive, or\\ML keywords};
+
+  \node[neutral, minimum width=13.7cm, minimum height=0.5cm, anchor=north] (shared) at ([yshift=-0.4cm]fwbot -| 6.85,0)
+    {\textbf{Shared by both handlers}: {\scriptsize LiteLLM client, four model tiers (Fast, Standard, Strong, Vision), and usage tracking}};
+  \draw[shareflow] (fwbot -| 4.8,0) -- (shared.north -| 4.8,0);
+  \draw[shareflow] (mle.south) -- (mle.south |- shared.north);
+\end{tikzpicture}
+\caption{Spatial Atlas places two handlers behind one A2A server. The server passes each task to one handler through four fixed dispatch rules, and no model call takes part in dispatch. On the default spatial path, the Strong tier extracts a typed scene graph from the file descriptions, so entity positions are Strong-tier estimates from text. Code computes only the distances that the model did not supply, and the Strong tier answers from the resulting fact sheet. A Fast-tier self-grade below 0.6 triggers one Strong-tier refinement. The strict metric bridge runs only under the frozen benchmark driver, which supplies the raw question and the protocol identifier. It calls SpatialClaw's tools~\citep{cho2026spatialclaw} for SAM~3 masks~\citep{carion2025sam3} and Depth Anything~3 point maps~\citep{lin2025da3}. The bridge fails closed and never falls back to the scene graph. The information-gain selector and the tier router exist in code, but no code calls them, so the figure omits them.}
+\label{fig:architecture}
+\end{figure}

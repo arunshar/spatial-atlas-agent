@@ -17,7 +17,7 @@ The behavior change is accepted rather than fixed, because 6.16.0 is the mandato
 PYSEC-2026-3913 and there is no patched version that keeps the old spacing. What must not happen
 again is shipping such a change without noticing it.
 
-The fixture is page 4 of paper/spatial_atlas.pdf, carried as its own file so that rebuilding the
+The fixture is page 4 of an earlier build of paper/spatial_atlas.pdf, carried as its own file so that rebuilding the
 paper cannot break this test. It is kept because it uses an embedded subset font. A PDF using a
 standard font such as Helvetica extracts identically on 6.15.0 and 6.16.1, so it would pass on
 both versions and pin nothing.

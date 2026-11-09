@@ -10,19 +10,44 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "a2a-sdk[http-server]>=0.3.20",
     "httpx>=0.28.1",
-    "litellm>=1.0.0",
+    # Floor is a security minimum, not a preference. CVE-2026-114612 (GHSA-7hp6-4w63-5g45,
+    # published 2026-10-27) affects every release from 1.91.0 below 1.100.4, plus 1.101.0 to
+    # 1.101.2, 1.102.0 to 1.102.1 and 1.103.0. 1.103.1 is the lowest single floor that excludes
+    # every affected stable release, and it also stays above the older PYSEC-2026-4066 lines
+    # that the previous 1.96.2 floor excluded. The lock pins 1.103.10, the newest patch on that
+    # line. eval_bench.py pins the same version in EXPECTED_LITELLM_VERSION, so bump both
+    # together.
+    "litellm>=1.103.1",
+    # The project does not import filelock directly. This is a security floor for a transitive
+    # dependency (litellm -> tokenizers -> huggingface-hub -> filelock). 4.2.1 is the first
+    # release clear of all 18 filelock advisories published on 2026-10-23 and 2026-10-28. The
+    # last 3.x release, 3.32.7, carries 13 of them, and there is no 3.x backport. litellm
+    # 1.104.0 and later declare filelock<4.0, so without this floor an ordinary litellm upgrade
+    # would quietly move filelock back onto a vulnerable 3.x release. With it, the resolver
+    # stays on litellm 1.103.x until litellm lifts that cap.
+    "filelock>=4.2.1",
     "pydantic>=2.11.0",
     "pydantic-settings>=2.0.0",
     "python-dotenv>=1.1.0",
     "uvicorn>=0.38.0",
     # Floor is a security minimum, not a preference. 6.16.0 fixes PYSEC-2026-3913 and 6.16.1
-    # fixes PYSEC-2026-3910 and PYSEC-2026-3911. Pinning this in uv.lock alone is not enough,
-    # because hatchling builds the wheel from this metadata, so a lock-less install could
-    # resolve back onto vulnerable 6.15.0 and the audit only ever scans the exported lock.
-    "pypdf>=6.16.1",
+    # fixes PYSEC-2026-3910 and PYSEC-2026-3911. 6.17.0 fixes PYSEC-2026-4158, 6.18.0 fixes
+    # PYSEC-2026-4153, 6.18.1 fixes PYSEC-2026-4154 to 4156, and 6.19.0 fixes PYSEC-2026-4157,
+    # 4159 and 4160. 6.20.0 through 6.21.1 close the five advisories that landed after 6.19.0.
+    # Seven more were published on 2026-10-30. 6.21.3 fixes CVE-2026-119206 to 119209, and
+    # 6.21.4 fixes CVE-2026-119203 to 119205, so 6.21.4 is the lowest single floor that
+    # excludes all of them. The lock pins that same version.
+    # Pinning this in uv.lock alone is not enough, because hatchling builds the wheel from this
+    # metadata, so a lock-less install could resolve back onto a vulnerable release and the
+    # audit only ever scans the exported lock.
+    "pypdf>=6.21.4",
     "numpy>=1.26.0",
     "scipy>=1.11.0",
-    "Pillow>=10.0.0",
+    # Floor is a security minimum. 13.0.0 is the lowest release that closes the 24 Pillow
+    # advisories pip-audit reported against 12.3.0 on the 2026-10-22 nightly; the lock pins
+    # that same version. Leaving the floor at 10.0.0 would let a lock-less install resolve
+    # back onto a vulnerable 12.x release that the audit would then flag on main.
+    "Pillow>=13.0.0",
     "opencv-python-headless>=4.8.0",
     "pandas>=2.0.0",
     "scikit-learn>=1.3.0",

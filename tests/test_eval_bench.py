@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import random
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -1324,7 +1325,8 @@ async def test_shutdown_litellm_awaits_queued_callbacks(monkeypatch):
 def test_litellm_shutdown_boundary_requires_frozen_version(monkeypatch):
     monkeypatch.setattr(driver, "package_version", lambda _name: "1.91.0")
 
-    with pytest.raises(RuntimeError, match="expected 1.92.0, found 1.91.0"):
+    expected = re.escape(f"expected {driver.EXPECTED_LITELLM_VERSION}, found 1.91.0")
+    with pytest.raises(RuntimeError, match=expected):
         driver._resolve_litellm_shutdown_boundary()
 
 

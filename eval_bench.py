@@ -67,7 +67,7 @@ QSPATIAL_CONTROL_MAPPING_SHA256 = _configured_sha256("ATLAS_QSPATIAL_CONTROL_MAP
 QSPATIAL_IMAGE_MANIFEST_SHA256 = _configured_sha256("ATLAS_QSPATIAL_IMAGE_MANIFEST_SHA256")
 
 QSPATIAL_CONTROL_IMAGE_COUNT = 84
-EXPECTED_LITELLM_VERSION = "1.92.0"
+EXPECTED_LITELLM_VERSION = "1.103.10"
 LITELLM_FLUSH_TIMEOUT_SECONDS = 60.0
 
 _PRESCORE_METADATA_FIELDS = (
@@ -1416,13 +1416,15 @@ def _resolve_litellm_shutdown_boundary() -> tuple[Any, Callable[[], Any]]:
     try:
         from litellm.litellm_core_utils.logging_worker import GLOBAL_LOGGING_WORKER
     except ImportError as exc:
-        raise RuntimeError("LiteLLM 1.92.0 logging worker API is unavailable") from exc
+        raise RuntimeError(
+            f"LiteLLM {EXPECTED_LITELLM_VERSION} logging worker API is unavailable"
+        ) from exc
 
     flush = getattr(GLOBAL_LOGGING_WORKER, "flush", None)
     stop = getattr(GLOBAL_LOGGING_WORKER, "stop", None)
     close_clients = getattr(litellm, "close_litellm_async_clients", None)
     if not callable(flush) or not callable(stop) or not callable(close_clients):
-        raise RuntimeError("LiteLLM 1.92.0 shutdown API is incompatible")
+        raise RuntimeError(f"LiteLLM {EXPECTED_LITELLM_VERSION} shutdown API is incompatible")
     return GLOBAL_LOGGING_WORKER, close_clients
 
 

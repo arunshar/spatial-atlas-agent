@@ -13,14 +13,17 @@ space, so words that 6.15.0 separated are now run together: "image I of" became 
 file_contexts and hands it to spatial.build_scene(), so it reaches the model as reasoning input
 and any degradation is invisible at runtime.
 
-The behavior change is accepted rather than fixed, because 6.16.0 is the mandatory floor for
-PYSEC-2026-3913 and there is no patched version that keeps the old spacing. What must not happen
-again is shipping such a change without noticing it.
+On 2026-10-22 the nightly audit forced another bump, through 6.21.2. That release restores the
+pre-6.16.0 spacing on this fixture, so the glued tokens are gone and the golden is re-recorded.
+The behavior change is accepted because 6.21.1 was then the mandatory floor for the five
+advisories that landed after 6.19.0, and there is no patched version that keeps the intermediate
+glued spacing.
+What must not happen again is shipping such a change without noticing it.
 
 The fixture is page 4 of an earlier build of paper/spatial_atlas.pdf, carried as its own file so that rebuilding the
 paper cannot break this test. It is kept because it uses an embedded subset font. A PDF using a
-standard font such as Helvetica extracts identically on 6.15.0 and 6.16.1, so it would pass on
-both versions and pin nothing.
+standard font such as Helvetica extracts identically across these versions, so it would pass on
+all of them and pin nothing.
 """
 
 import hashlib
@@ -30,13 +33,15 @@ from fieldwork.vision import VisionPipeline
 
 FIXTURE = Path(__file__).parent / "fixtures" / "kerned_subset_font.pdf"
 
-# Golden recorded under pypdf 6.16.1. A failure here is not automatically a bug. It means the
-# extracted text moved, so diff the output against this hash's provenance and decide whether the
-# new text is acceptable before updating the constant.
-EXPECTED_SHA256 = "351d2ec9b2f375f67ef4a945fd8d6b02637b3b1b17fa00d88b377891b3a4ef19"
+# The golden was recorded under pypdf 6.21.2. The 2026-11-05 bump to 6.21.4 left it unchanged,
+# so it was not re-recorded. A failure here is not automatically a bug. It means the extracted
+# text moved, so diff the output against this hash's provenance and decide whether the new text
+# is acceptable before updating the constant.
+EXPECTED_SHA256 = "2e14cb3cf84480bd9138a697a9ee3c94c5b4d418e550546a3a4446877ec5735a"
 
-# The spacing behavior 6.16.0 introduced, asserted by name. When the golden above breaks, these
-# say which part of the change moved, which a bare hash mismatch cannot.
+# Spacing restored in 6.21.x relative to the accepted 6.16.x regression. Asserted by name so a
+# future bump that glues these tokens again is a clear failure rather than a bare hash mismatch.
+SPACED_ON_6_21 = ("image I", "question q", "answer a", "constraints C")
 GLUED_ON_6_16 = ("imageI", "questionq", "answera", "constraintsC")
 
 
@@ -54,17 +59,19 @@ def test_pdf_extraction_matches_recorded_golden():
     )
 
 
-def test_pdf_extraction_still_loses_word_boundaries():
-    """Documents the accepted 6.16.x regression so a future fix is noticed too.
+def test_pdf_extraction_keeps_word_boundaries():
+    """Documents the restored 6.21.x spacing so a future glue regression is noticed too.
 
-    If pypdf ever restores the old spacing this test fails, which is the signal to re-record the
-    golden and delete this test rather than a reason to pin the old version.
+    If pypdf ever reintroduces the 6.16.x glued tokens this test fails, which is the signal to
+    re-record the golden and decide whether the new text is acceptable rather than a reason to
+    pin an older version.
     """
     text = _extract()
+    missing_spaced = [token for token in SPACED_ON_6_21 if token not in text]
     still_glued = [token for token in GLUED_ON_6_16 if token in text]
-    assert still_glued == list(GLUED_ON_6_16), (
-        f"Word-boundary behavior changed. Still glued: {still_glued}. "
-        f"Expected all of {list(GLUED_ON_6_16)}."
+    assert missing_spaced == [] and still_glued == [], (
+        f"Word-boundary behavior changed. Missing spaced: {missing_spaced}. "
+        f"Still glued: {still_glued}."
     )
 
 

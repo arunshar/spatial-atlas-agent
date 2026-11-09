@@ -1,0 +1,22 @@
+# Dependabot security updates for uv.lock. It opens a PR when GitHub's advisory database flags
+# a locked package, so the bump the nightly pip-audit gate keeps asking for arrives on its own.
+# Version updates are off. open-pull-requests-limit: 0 stops routine upgrade PRs, and security
+# PRs have their own fixed limit that this setting does not touch. All security fixes for the
+# lock are grouped into one PR. This file does nothing until "Dependabot alerts" and
+# "Dependabot security updates" are enabled in the repository settings.
+#
+# Two cases still need a person. Dependabot will not bump a parent package to reach a fixed
+# transitive version, and a litellm bump fails CI until EXPECTED_LITELLM_VERSION in
+# eval_bench.py is updated to match, which is deliberate.
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+    groups:
+      uv-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
